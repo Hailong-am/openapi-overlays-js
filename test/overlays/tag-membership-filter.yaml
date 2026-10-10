@@ -1,0 +1,8 @@
+overlay: 1.0.0
+info:
+  title: Flag operations tagged Enterprise-Only
+  version: 1.0.0
+actions:
+  - target: "$.paths..[?(@.tags && @.tags.includes('Enterprise-Only'))]"
+    update:
+      x-internal: true

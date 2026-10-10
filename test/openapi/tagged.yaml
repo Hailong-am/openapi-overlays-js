@@ -1,0 +1,27 @@
+openapi: 3.1.0
+info:
+  title: Tagged API
+  version: 1.0.0
+paths:
+  /public:
+    get:
+      operationId: getPublic
+      tags:
+        - Public
+      responses:
+        '200':
+          description: ok
+  /secret:
+    get:
+      operationId: getSecret
+      tags:
+        - Enterprise-Only
+      responses:
+        '200':
+          description: ok
+  /ping:
+    post:
+      operationId: ping
+      responses:
+        '200':
+          description: ok

@@ -146,3 +146,16 @@ test('filter by a $-prefixed property ($ref) in a predicate (#42)', () => {
   expect(result).not.toMatch(/#\/components\/schemas\/Building/)
   expect(result).toEqual(expectedOutput)
 })
+
+test('array-membership predicate selects operations by tag (#42)', () => {
+  const openapiFile = 'test/openapi/tagged.yaml'
+  const overlayFile = 'test/overlays/tag-membership-filter.yaml'
+  const expectedFile = 'test/expected/tagged-tag-membership.yaml'
+  const expectedOutput = fs.readFileSync(expectedFile, 'utf8')
+
+  const result = overlayFiles(openapiFile, overlayFile)
+
+  // Only the Enterprise-Only operation is flagged.
+  expect((result.match(/x-internal: true/g) || []).length).toEqual(1)
+  expect(result).toEqual(expectedOutput)
+})
