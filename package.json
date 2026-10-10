@@ -23,7 +23,7 @@
   "dependencies": {
     "@stoplight/yaml": "^4.2.3",
     "arg": "^5.0.2",
-    "jsonpath": "^1.1.1",
+    "jsonpath-plus": "^11.2.0",
     "mergician": "^1.0.3",
     "openapi-format": "^1.13.0"
   },

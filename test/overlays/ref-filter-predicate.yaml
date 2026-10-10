@@ -1,0 +1,7 @@
+overlay: 1.0.0
+info:
+  title: Remove schemas referenced by a $ref matching a pattern
+  version: 1.0.0
+actions:
+  - target: "$..[?(@.$ref && @.$ref.match(/Building/))]"
+    remove: true

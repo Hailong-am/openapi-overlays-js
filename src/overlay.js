@@ -1,38 +1,47 @@
 import fs from 'fs'
-import jsonpath from 'jsonpath'
+import { JSONPath } from 'jsonpath-plus'
 import { safeStringify, parseWithPointers } from '@stoplight/yaml'
 import mergician from 'mergician'
 
 function applyOverlayToOpenAPI (spec, overlay) {
-  // Use jsonpath.apply to do the changes
   if (overlay.actions && overlay.actions.length >= 1) {
     overlay.actions.forEach((a) => {
-    // Is it a remove?
+      // Is it a remove?
       if (Object.prototype.hasOwnProperty.call(a, 'remove')) {
-        while (true) {
-          const path = jsonpath.paths(spec, a.target)
-          if (path.length === 0) {
-            break
+        // Collect every match with its parent + the key/index that reaches it.
+        const matches = JSONPath({ path: a.target, json: spec, resultType: 'all' })
+        // Delete array elements high-index-first so earlier splices don't shift
+        // the indexes of matches we still have to remove.
+        const arrayDeletions = []
+        matches.forEach((m) => {
+          if (Array.isArray(m.parent)) {
+            arrayDeletions.push({ parent: m.parent, index: Number(m.parentProperty) })
+          } else if (m.parent) {
+            delete m.parent[m.parentProperty]
           }
-          const parent = jsonpath.parent(spec, a.target)
-          const thingToRemove = path[0][path[0].length - 1]
-          if (Array.isArray(parent)) {
-            parent.splice(thingToRemove, 1)
-          } else {
-            delete parent[thingToRemove]
-          }
-        }
+        })
+        arrayDeletions
+          .sort((x, y) => y.index - x.index)
+          .forEach((d) => d.parent.splice(d.index, 1))
       } else {
         try {
-        // It must be an update
+          // It must be an update
           if (a.target === '$') {
             spec = merger(a.update)(spec)
           } else {
-            jsonpath.apply(spec, a.target, merger(a.update))
+            JSONPath({
+              path: a.target,
+              json: spec,
+              resultType: 'all',
+              callback: (m) => {
+                if (m.parent) {
+                  m.parent[m.parentProperty] = merger(a.update)(m.value)
+                }
+              }
+            })
           }
         } catch (ex) {
           process.stderr.write(`Error applying overlay: ${ex.message}\n`)
-        // return chunk
         }
       }
     })

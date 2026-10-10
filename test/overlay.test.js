@@ -132,3 +132,17 @@ test('remove all matching responses', () => {
 
   expect(result).toEqual(expectedOutput)
 })
+
+test('filter by a $-prefixed property ($ref) in a predicate (#42)', () => {
+  const openapiFile = 'test/openapi/town.yaml'
+  const overlayFile = 'test/overlays/ref-filter-predicate.yaml'
+  const expectedFile = 'test/expected/town-ref-filter-predicate.yaml'
+  const expectedOutput = fs.readFileSync(expectedFile, 'utf8')
+
+  const result = overlayFiles(openapiFile, overlayFile)
+
+  // The old jsonpath engine threw "Unsafe expression" on $-prefixed property
+  // predicates; jsonpath-plus evaluates them, so the Building $refs are removed.
+  expect(result).not.toMatch(/#\/components\/schemas\/Building/)
+  expect(result).toEqual(expectedOutput)
+})
